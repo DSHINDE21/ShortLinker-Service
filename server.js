@@ -1,5 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
+import connectDB from "./config/db.js";
 
 //for reading env variables
 dotenv.config();
@@ -14,6 +15,7 @@ app.use(express.json());
 const startServer = () => {
   try {
     // connect to db
+    connectDB();
 
     // start & listen to the request
     app.listen(PORT, () => {
