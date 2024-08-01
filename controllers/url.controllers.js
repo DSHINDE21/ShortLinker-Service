@@ -93,4 +93,80 @@ const getUrlByShortUrl = async (req, res, next) => {
   }
 };
 
-export { createShortUrl, getAllUrls, getUrlByShortUrl };
+const redirectUrl = async (req, res, next) => {
+  try {
+    const { shortUrl } = req.params;
+
+    console.log("shortUrl", shortUrl);
+    if (!shortUrl) {
+      return res.status(400).json({
+        success: 0,
+        message: "shortUrl is a required field",
+        data: {},
+      });
+    }
+
+    const url = await Url.findOne({ shortUrl }).exec();
+    console.log("url", url);
+    if (!url) {
+      return res.status(400).json({
+        success: 0,
+        message: "URL not found",
+        data: {},
+      });
+    }
+
+    res.status(301).redirect(url.originalUrl);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: 0,
+      message: "Internal Server Error",
+      data: {},
+    });
+  }
+};
+
+const updateUrl = async (req, res, next) => {
+  const { shortUrl } = req.params;
+  const { originalUrl } = req.body;
+
+  if (!shortUrl || !originalUrl) {
+    return res.status(400).json({
+      success: 0,
+      message:
+        "shortUrl in route params and originalUrl in request body is required",
+      data: {},
+    });
+  }
+
+  try {
+    const url = await Url.findOneAndUpdate(
+      { shortUrl },
+      { originalUrl },
+      { new: true }
+    );
+
+    if (!url) {
+      return res.status(400).json({
+        success: 0,
+        message: "URL not found for update",
+        data: {},
+      });
+    }
+
+    res.status(200).json({
+      success: 1,
+      message: "URL updated successfully",
+      data: url,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: 0,
+      message: "Internal Server Error",
+      data: {},
+    });
+  }
+};
+export { createShortUrl, getAllUrls, getUrlByShortUrl, redirectUrl, updateUrl };
