@@ -43,7 +43,7 @@ const createShortUrl = async (req, res, next) => {
 
 const getAllUrls = async (req, res, net) => {
   try {
-    const urls = await Url.find({});
+    const urls = await Url.find();
 
     res.status(200).json({
       success: 1,
@@ -169,4 +169,47 @@ const updateUrl = async (req, res, next) => {
     });
   }
 };
-export { createShortUrl, getAllUrls, getUrlByShortUrl, redirectUrl, updateUrl };
+
+const deleteUrl = async (req, res, next) => {
+  const { shortUrl } = req.params;
+
+  if (!shortUrl) {
+    return res.status(400).json({
+      success: 0,
+      message: "shortUrl is required",
+      data: {},
+    });
+  }
+  try {
+    const deletedUrl = await Url.findOneAndDelete({ shortUrl });
+
+    if (!deletedUrl) {
+      return res.status(400).json({
+        success: 0,
+        message: "URL not found to delete",
+        data: {},
+      });
+    }
+
+    res.status(200).json({
+      success: 1,
+      message: "URL deleted successfully",
+      data: deletedUrl,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: 0,
+      message: "Internal Server Error",
+      data: {},
+    });
+  }
+};
+export {
+  createShortUrl,
+  getAllUrls,
+  getUrlByShortUrl,
+  redirectUrl,
+  updateUrl,
+  deleteUrl,
+};

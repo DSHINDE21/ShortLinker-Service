@@ -1,6 +1,7 @@
 import express from "express";
 import {
   createShortUrl,
+  deleteUrl,
   getAllUrls,
   getUrlByShortUrl,
   redirectUrl,
@@ -23,5 +24,8 @@ router.get("/redirect/:shortUrl", redirectUrl);
 
 // Update original Url
 router.put("/:shortUrl", updateUrl);
+
+// Delete specific url
+router.delete("/:shortUrl", deleteUrl);
 
 export default router;
