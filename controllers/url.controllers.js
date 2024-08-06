@@ -1,3 +1,4 @@
+import { Error } from "mongoose";
 import Url from "../models/Url.model.js";
 
 const createShortUrl = async (req, res, next) => {
@@ -8,21 +9,15 @@ const createShortUrl = async (req, res, next) => {
     const shortUrl = Math.random().toString(16).substring(2, 6);
 
     if (!originalUrl) {
-      return res.status(400).json({
-        success: 0,
-        message: "originalUrl is required field",
-        data: {},
-      });
+      res.status(400);
+      return next(new Error("originalUrl is a required field"));
     }
 
     //check if url already exists
     const isUrlExists = await Url.findOne();
     if (isUrlExists) {
-      return res.status(400).json({
-        success: 0,
-        message: "originalUrl already shortened",
-        data: {},
-      });
+      res.status(400);
+      return next(new Error("originalUrl already shortenedd"));
     }
 
     const newUrl = await Url.create({
@@ -37,11 +32,12 @@ const createShortUrl = async (req, res, next) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json("Internal Server Error");
+    res.status(500);
+    return next(new Error("Internal Server Error"));
   }
 };
 
-const getAllUrls = async (req, res, net) => {
+const getAllUrls = async (req, res, next) => {
   try {
     const urls = await Url.find();
 
@@ -52,7 +48,8 @@ const getAllUrls = async (req, res, net) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json("Internal Server Error");
+    res.status(500);
+    return next(new Error("Internal Server Error"));
   }
 };
 
@@ -61,21 +58,15 @@ const getUrlByShortUrl = async (req, res, next) => {
     const { shortUrl } = req.params;
 
     if (!shortUrl) {
-      return res.status(400).json({
-        success: 0,
-        message: "shortUrl is a required field",
-        data: {},
-      });
+      res.status(400);
+      return next(new Error("shortUrl is a required field"));
     }
 
     const url = await Url.findOne({ shortUrl });
 
     if (!url) {
-      return res.status(404).json({
-        success: 0,
-        message: "URL not found",
-        data: {},
-      });
+      res.status(404);
+      return next(new Error("URL not found"));
     }
 
     return res.status(200).json({
@@ -85,11 +76,8 @@ const getUrlByShortUrl = async (req, res, next) => {
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({
-      success: 0,
-      message: "Internal Server Error",
-      data: {},
-    });
+    res.status(500);
+    return next(new Error("Internal Server Error"));
   }
 };
 
@@ -99,31 +87,22 @@ const redirectUrl = async (req, res, next) => {
 
     console.log("shortUrl", shortUrl);
     if (!shortUrl) {
-      return res.status(400).json({
-        success: 0,
-        message: "shortUrl is a required field",
-        data: {},
-      });
+      res.status(400);
+      return next(new Error("shortUrl is a required field"));
     }
 
     const url = await Url.findOne({ shortUrl }).exec();
     console.log("url", url);
     if (!url) {
-      return res.status(400).json({
-        success: 0,
-        message: "URL not found",
-        data: {},
-      });
+      res.status(400);
+      return next(new Error("URL not found"));
     }
 
     res.status(301).redirect(url.originalUrl);
   } catch (error) {
     console.error(error);
-    return res.status(500).json({
-      success: 0,
-      message: "Internal Server Error",
-      data: {},
-    });
+    res.status(500);
+    return next(new Error("Internal Server Error"));
   }
 };
 
@@ -132,12 +111,12 @@ const updateUrl = async (req, res, next) => {
   const { originalUrl } = req.body;
 
   if (!shortUrl || !originalUrl) {
-    return res.status(400).json({
-      success: 0,
-      message:
-        "shortUrl in route params and originalUrl in request body is required",
-      data: {},
-    });
+    res.status(400);
+    return next(
+      new Error(
+        "shortUrl in route params and originalUrl in request body is required"
+      )
+    );
   }
 
   try {
@@ -148,11 +127,8 @@ const updateUrl = async (req, res, next) => {
     );
 
     if (!url) {
-      return res.status(400).json({
-        success: 0,
-        message: "URL not found for update",
-        data: {},
-      });
+      res.status(400);
+      return next(new Error("URL not found for update"));
     }
 
     res.status(200).json({
@@ -162,11 +138,8 @@ const updateUrl = async (req, res, next) => {
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({
-      success: 0,
-      message: "Internal Server Error",
-      data: {},
-    });
+    res.status(500);
+    return next(new Error("Internal Server Error"));
   }
 };
 
@@ -174,21 +147,15 @@ const deleteUrl = async (req, res, next) => {
   const { shortUrl } = req.params;
 
   if (!shortUrl) {
-    return res.status(400).json({
-      success: 0,
-      message: "shortUrl is required",
-      data: {},
-    });
+    res.status(400);
+    return next(new Error("shortUrl is required"));
   }
   try {
     const deletedUrl = await Url.findOneAndDelete({ shortUrl });
 
     if (!deletedUrl) {
-      return res.status(400).json({
-        success: 0,
-        message: "URL not found to delete",
-        data: {},
-      });
+      res.status(400);
+      return next(new Error("URL not found to delete"));
     }
 
     res.status(200).json({
@@ -198,13 +165,11 @@ const deleteUrl = async (req, res, next) => {
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({
-      success: 0,
-      message: "Internal Server Error",
-      data: {},
-    });
+    res.status(500);
+    return next(new Error("Internal Server Error"));
   }
 };
+
 export {
   createShortUrl,
   getAllUrls,
