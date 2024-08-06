@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import urlRoutes from "./routes/url.route.js";
+import errorHandler from "./middlewares/error.js";
 
 //for reading env variables
 dotenv.config();
@@ -16,6 +17,9 @@ app.use(express.json());
 // Routes
 // it mounts the urlRoutes router to handle all routes starting with /api/urls.
 app.use("/api/urls", urlRoutes);
+
+// Error handler
+app.use(errorHandler);
 
 const startServer = () => {
   try {
