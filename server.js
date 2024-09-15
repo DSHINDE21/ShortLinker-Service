@@ -3,6 +3,8 @@ import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import urlRoutes from "./routes/url.route.js";
 import errorHandler from "./middlewares/error.js";
+import corsMiddleware from "./config/cors.js";
+import logger from "./middlewares/logger.js";
 
 //for reading env variables
 dotenv.config();
@@ -12,6 +14,8 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // middleware
+app.use(logger); // Log requests
+app.use(corsMiddleware); // Apply CORS middleware
 app.use(express.json());
 
 // Routes
