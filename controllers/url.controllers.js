@@ -5,33 +5,62 @@ const createShortUrl = async (req, res, next) => {
   console.log("reached here...");
   try {
     const { originalUrl } = req.body;
-    // Todo: Simple logic is used as of now, later made special logic
-    const shortUrl = Math.random().toString(16).substring(2, 6);
 
+    // Check if originalUrl is provided in the request
     if (!originalUrl) {
-      res.status(400);
+      res.status(200);
       return next(new Error("originalUrl is a required field"));
     }
 
-    //check if url already exists
-    const isUrlExists = await Url.findOne();
+    // Check if the URL has already been shortened
+    const isUrlExists = await Url.findOne({ originalUrl });
     if (isUrlExists) {
-      res.status(400);
-      return next(new Error("originalUrl already shortenedd"));
+      return res.status(200).json({
+        success: 0,
+        message: "This URL has already been shortened.",
+        data: isUrlExists,
+      });
     }
 
+    // Generate a unique short URL
+    let shortCode;
+    let isShortUrlUnique = false;
+
+    while (!isShortUrlUnique) {
+      shortCode = Math.random().toString(16).substring(2, 6); // Simple random short URL generator
+      const existingShortUrl = await Url.findOne({
+        shortUrl: `https://shortlinker-service.onrender.com/api/urls/redirect/${shortCode}`,
+      });
+      if (!existingShortUrl) {
+        isShortUrlUnique = true; // Only break loop when shortUrl is unique
+      }
+    }
+
+    const shortUrl = `https://shortlinker-service.onrender.com/api/urls/redirect/${shortCode}`;
+
+    // Create and save new URL document
     const newUrl = await Url.create({
       originalUrl,
       shortUrl,
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       success: 1,
-      message: "Request Successfull",
+      message: "URL shortened successfully.",
       data: newUrl,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Error in createShortUrl:", error);
+
+    // Handle validation errors
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        success: 0,
+        message: error.message,
+      });
+    }
+
+    // Generic internal server error handling
     res.status(500);
     return next(new Error("Internal Server Error"));
   }
